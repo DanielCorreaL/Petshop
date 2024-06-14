@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="text/javascript" src="https://cdn.emailjs.com/dist/email.min.js"></script>
+<script type="text/javascript">
+    (function(){
+        emailjs.init("psFoBcasalnFEvaap"); // Substitua "YOUR_USER_ID" pelo seu ID de usuário do EmailJS
+    })();
+</script>
+    <title>Administração de Produtos</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 200px;
+            background-color: #ff7519;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #fac226;
+            text-align: center;
+            border-radius: 5px;
+        }
+
+        .sidebar a:hover {
+            background-color: #e45e04;
+        }
+
+        .content {
+            flex-grow: 1;
+            padding: 20px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .product-list {
+            margin-bottom: 20px;
+        }
+
+        .product-item {
+            border-bottom: 1px solid #ccc;
+            padding: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .product-item button {
+            margin-left: 10px;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .product-item button.edit {
+            background-color: #FFC107;
+            color: white;
+        }
+
+        .product-item button.remove {
+            background-color: #DC3545;
+            color: white;
+        }
+
+        .form {
+            display: flex;
+            flex-direction: column;
+            margin-top: 20px;
+        }
+
+        .form input[type="text"],
+        .form input[type="number"],
+        .form textarea,
+        .form select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .form input[type="file"] {
+            margin-bottom: 10px;
+        }
+
+        .form input[type="submit"] {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #fc9b2c;
+            color: white;
+            cursor: pointer;
+        }
+
+        .order-list {
+            margin-top: 20px;
+        }
+
+        .order-item {
+            border-bottom: 1px solid #ccc;
+            padding: 10px 0;
+        }
+
+        .order-item button {
+            margin-left: 10px;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .order-item button.remove {
+            background-color: #DC3545;
+            color: white;
+        }
+
+        .order-item button.complete {
+            background-color: #28A745;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <a href="#" id="linkAddProduct">Adicionar Produto</a>
+        <a href="#" id="linkEditProduct">Editar Produto</a>
+        <a href="#" id="linkRemoveProduct">Remover Produto</a>
+        <a href="#" id="linkManageOrders">Administrar Pedidos</a>
+    </div>
+
+    <div class="content">
+        <!-- Seção Adicionar Produto -->
+        <div id="sectionAddProduct">
+            <h2>Adicionar Produto</h2>
+            <form id="addProductForm" class="form">
+                <input type="text" id="addProductName" placeholder="Nome do Produto" required>
+                <input type="number" id="addProductPrice" placeholder="Preço do Produto" required>
+                <input type="file" id="addProductImage" accept="image/*" required>
+                <textarea id="addProductDescription" placeholder="Descrição do Produto" required></textarea>
+                <select id="addProductCategory">
+                    <option value="Rações">Rações</option>
+                    <option value="Medicamentos">Medicamentos</option>
+                    <option value="Higiene">Higiene</option>
+                    <option value="Acessórios">Acessórios</option>
+                </select>
+                <input type="submit" value="Adicionar Produto">
+            </form>
+        </div>
+
+        <!-- Seção Editar Produto -->
+        <div id="sectionEditProduct" class="hidden">
+            <h2>Editar Produto</h2>
+            <div class="product-list" id="productListEdit">
+                <!-- Lista de produtos para edição será carregada aqui -->
+            </div>
+            <div class="form hidden" id="editForm">
+                <h3>Editar Produto</h3>
+                <form id="editProductForm">
+                    <input type="hidden" id="editProductId">
+                    <input type="text" id="editProductName" placeholder="Nome do Produto" required>
+                    <input type="number" id="editProductPrice" placeholder="Preço do Produto" required>
+                    <input type="file" id="editProductImage" accept="image/*">
+                    <textarea id="editProductDescription" placeholder="Descrição do Produto" required></textarea>
+                    <select id="editProductCategory">
+                        <option value="Rações">Rações</option>
+                        <option value="Medicamentos">Medicamentos</option>
+                        <option value="Higiene">Higiene</option>
+                        <option value="Acessórios">Acessórios</option>
+                    </select>
+                    <input type="submit" value="Salvar Alterações">
+                </form>
+            </div>
+        </div>
+
+        <!-- Seção Remover Produto -->
+        <div id="sectionRemoveProduct" class="hidden">
+            <h2>Remover Produto</h2>
+            <div class="product-list" id="productListRemove">
+                <!-- Lista de produtos para remoção será carregada aqui -->
+            </div>
+        </div>
+
+        <!-- Seção Administrar Pedidos -->
+        <div id="sectionManageOrders" class="hidden">
+            <h2>Administrar Pedidos</h2>
+            <div class="order-list" id="orderList">
+                <!-- Lista de pedidos será carregada aqui -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const products = JSON.parse(localStorage.getItem('products')) || [];
+        const orders = JSON.parse(localStorage.getItem('orders')) || [];
+
+        const linkAddProduct = document.getElementById('linkAddProduct');
+        const linkEditProduct = document.getElementById('linkEditProduct');
+        const linkRemoveProduct = document.getElementById('linkRemoveProduct');
+        const linkManageOrders = document.getElementById('linkManageOrders');
+
+        const sectionAddProduct = document.getElementById('sectionAddProduct');
+        const sectionEditProduct = document.getElementById('sectionEditProduct');
+        const sectionRemoveProduct = document.getElementById('sectionRemoveProduct');
+        const sectionManageOrders = document.getElementById('sectionManageOrders');
+
+        const productListEdit = document.getElementById('productListEdit');
+        const productListRemove = document.getElementById('productListRemove');
+        const orderList = document.getElementById('orderList');
+
+        const addProductForm = document.getElementById('addProductForm');
+        const editForm = document.getElementById('editForm');
+        const editProductForm = document.getElementById('editProductForm');
+
+        function showSection(section) {
+            sectionAddProduct.classList.add('hidden');
+            sectionEditProduct.classList.add('hidden');
+            sectionRemoveProduct.classList.add('hidden');
+            sectionManageOrders.classList.add('hidden');
+            section.classList.remove('hidden');
+        }
+
+        linkAddProduct.addEventListener('click', () => showSection(sectionAddProduct));
+        linkEditProduct.addEventListener('click', () => {
+            showSection(sectionEditProduct);
+            loadEditProductList();
+        });
+        linkRemoveProduct.addEventListener('click', () => {
+            showSection(sectionRemoveProduct);
+            loadRemoveProductList();
+        });
+        linkManageOrders.addEventListener('click', () => {
+            showSection(sectionManageOrders);
+            loadOrderList();
+        });
+
+        addProductForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const name = document.getElementById('addProductName').value;
+            const price = document.getElementById('addProductPrice').value;
+            const image = document.getElementById('addProductImage').files[0];
+            const description = document.getElementById('addProductDescription').value;
+            const category = document.getElementById('addProductCategory').value;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const newProduct = {
+                    id: Date.now().toString(),
+                    name: name,
+                    price: price,
+                    image: event.target.result,
+                    description: description,
+                    category: category
+                };
+                products.push(newProduct);
+                localStorage.setItem('products', JSON.stringify(products));
+                addProductForm.reset();
+            };
+            reader.readAsDataURL(image);
+        });
+
+        function loadEditProductList() {
+            productListEdit.innerHTML = '';
+            products.forEach(product => {
+                const productItem = document.createElement('div');
+                productItem.classList.add('product-item');
+                productItem.innerHTML = `
+                    <span>${product.name} - R$ ${product.price}</span>
+                    <button class="edit" data-id="${product.id}">Editar</button>
+                `;
+                productListEdit.appendChild(productItem);
+            });
+
+            document.querySelectorAll('.edit').forEach(button => {
+                button.addEventListener('click', function() {
+                    const productId = this.dataset.id;
+                    const product = products.find(p => p.id == productId);
+                    if (product) {
+                        document.getElementById('editProductId').value = product.id;
+                        document.getElementById('editProductName').value = product.name;
+                        document.getElementById('editProductPrice').value = product.price;
+                        document.getElementById('editProductDescription').value = product.description;
+                        document.getElementById('editProductCategory').value = product.category;
+                        editForm.style.display = 'flex';
+                    }
+                });
+            });
+        }
+
+        editProductForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const productId = document.getElementById('editProductId').value;
+            const name = document.getElementById('editProductName').value;
+            const price = document.getElementById('editProductPrice').value;
+            const image = document.getElementById('editProductImage').files[0];
+            const description = document.getElementById('editProductDescription').value;
+            const category = document.getElementById('editProductCategory').value;
+
+            const index = products.findIndex(p => p.id == productId);
+            if (index > -1) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    products[index].name = name;
+                    products[index].price = price;
+                    if (image) {
+                        products[index].image = event.target.result;
+                    }
+                    products[index].description = description;
+                    products[index].category = category;
+                    localStorage.setItem('products', JSON.stringify(products));
+                    editForm.style.display = 'none';
+                    loadEditProductList();
+                };
+                if (image) {
+                    reader.readAsDataURL(image);
+                } else {
+                    products[index].name = name;
+                    products[index].price = price;
+                    products[index].description = description;
+                    products[index].category = category;
+                    localStorage.setItem('products', JSON.stringify(products));
+                    editForm.style.display = 'none';
+                    loadEditProductList();
+                }
+            }
+        });
+
+        function loadRemoveProductList() {
+            productListRemove.innerHTML = '';
+            products.forEach(product => {
+                const productItem = document.createElement('div');
+                productItem.classList.add('product-item');
+                productItem.innerHTML = `
+                    <span>${product.name} - R$ ${product.price}</span>
+                    <button class="remove" data-id="${product.id}">Remover</button>
+                `;
+                productListRemove.appendChild(productItem);
+            });
+
+            document.querySelectorAll('.remove').forEach(button => {
+                button.addEventListener('click', function() {
+                    const productId = this.dataset.id;
+                    const index = products.findIndex(p => p.id == productId);
+                    if (index > -1) {
+                        products.splice(index, 1);
+                        localStorage.setItem('products', JSON.stringify(products));
+                        loadRemoveProductList();
+                    }
+                });
+            });
+        }
+
+        
+
+
+        function loadOrderList() {
+    orderList.innerHTML = '';
+    if (orders.length === 0) {
+        orderList.innerHTML = '<p>Nenhum pedido realizado até o momento.</p>';
+    } else {
+        orders.forEach(order => {
+            const orderItem = document.createElement('div');
+            orderItem.classList.add('order-item');
+            orderItem.innerHTML = `
+                <h3>Pedido de: ${order.id}</h3> <!-- Aqui usamos o customerName como ID -->
+                <p>Data: ${new Date(order.date).toLocaleString()}</p>
+                <ul>
+                    ${order.items.map(item => `
+                        <li>
+                            ${item.name} - R$ ${item.price} x ${item.quantity}
+                        </li>
+                    `).join('')}
+                </ul>
+                <p>Total: R$ ${order.total}</p>
+                <button class="complete" data-id="${order.id}">Concluir</button>
+                <button class="remove" data-id="${order.id}">Remover</button>
+            `;
+            orderList.appendChild(orderItem);
+        });
+
+        document.querySelectorAll('.complete').forEach(button => {
+            button.addEventListener('click', function() {
+                const orderId = this.dataset.id;
+                const index = orders.findIndex(o => o.id == orderId);
+                if (index > -1) {
+                    // Obter os detalhes do pedido concluído
+                    const order = orders[index];
+                    
+                    // Configurações do email
+                    const templateParams = {
+                        to_email: order.customerEmail,
+                        customer_name: order.customerName,
+                        order_id: order.id,
+                        order_date: new Date(order.date).toLocaleString(),
+                        order_total: order.total,
+                        order_items: order.items.map(item => `${item.name} - R$ ${item.price} x ${item.quantity}`).join(', ')
+                    };
+
+                    // Enviar email de confirmação
+                    emailjs.send("service_u1tte04","template_5qdllum", templateParams)
+                        .then(function(response) {
+                            console.log('Email enviado com sucesso!', response.status, response.text);
+                            // Remover o pedido da lista após concluir
+                            orders.splice(index, 1);
+                            localStorage.setItem('orders', JSON.stringify(orders));
+                            loadOrderList();
+                        }, function(error) {
+                            console.error('Erro ao enviar email:', error);
+                            alert('Houve um problema ao enviar a confirmação do pedido. Por favor, tente novamente.');
+                        });
+                }
+            });
+        });
+
+        document.querySelectorAll('.remove').forEach(button => {
+            button.addEventListener('click', function() {
+                const orderId = this.dataset.id;
+                const index = orders.findIndex(o => o.id == orderId);
+                if (index > -1) {
+                    orders.splice(index, 1);
+                    localStorage.setItem('orders', JSON.stringify(orders));
+                    loadOrderList();
+                }
+            });
+        });
+    }
+}
+
+
+
+        loadRemoveProductList();
+    </script>
+</body>
+</html>

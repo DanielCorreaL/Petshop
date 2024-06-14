@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página de Produtos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        #filterButtons {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .filter-btn {
+            padding: 10px 20px;
+            margin: 0 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #f3a228;
+            color: white;
+        }
+
+        #viewCartButton {
+            padding: 10px 20px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+        }
+
+        .product-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .product-card {
+            border: 1px solid #ccc;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 10px;
+            width: 200px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .product-card:hover {
+            transform: scale(1.05);
+        }
+
+        .product-card img {
+            max-width: 100%;
+            border-radius: 15px;
+        }
+
+        .product-card button {
+            margin-top: 10px;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+        }
+
+        .product-card button.add-to-cart {
+            background-color: #28A745;
+        }
+    </style>
+</head>
+<body>
+    <div id="filterButtons">
+        <button class="filter-btn" data-category="all">Todos</button>
+        <button class="filter-btn" data-category="Rações">Rações</button>
+        <button class="filter-btn" data-category="Medicamentos">Medicamentos</button>
+        <button class="filter-btn" data-category="Higiene">Higiene</button>
+        <button class="filter-btn" data-category="Acessórios">Acessórios</button>
+    </div>
+
+    <div class="product-container" id="productContainer">
+        <!-- Produtos serão adicionados aqui -->
+    </div>
+
+    <button id="viewCartButton">Ver Carrinho</button>
+
+    <script>
+        const products = JSON.parse(localStorage.getItem('products')) || [];
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+        function displayProducts(filteredProducts) {
+            const productContainer = document.getElementById('productContainer');
+            productContainer.innerHTML = '';
+            filteredProducts.forEach(product => {
+                const productCard = document.createElement('div');
+                productCard.classList.add('product-card');
+                productCard.dataset.category = product.category;
+
+                productCard.innerHTML = `
+                    <img src="${product.image}" alt="${product.name}">
+                    <h2>${product.name}</h2>
+                    <p>R$ ${product.price}</p>
+                    <button onclick="window.location.href='detalhes.html?id=${product.id}'">Detalhes do Produto</button>
+                    <button class="add-to-cart" data-id="${product.id}">Adicionar ao Carrinho</button>
+                `;
+
+                productContainer.appendChild(productCard);
+            });
+
+            document.querySelectorAll('.add-to-cart').forEach(button => {
+                button.addEventListener('click', function() {
+                    const productId = this.dataset.id;
+                    const product = products.find(p => p.id == productId);
+                    if (product) {
+                        cart.push(product);
+                        localStorage.setItem('cart', JSON.stringify(cart));
+                        alert('Produto adicionado ao carrinho!');
+                    }
+                });
+            });
+        }
+
+        document.querySelectorAll('.filter-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const category = this.dataset.category;
+                if (category === 'all') {
+                    displayProducts(products);
+                } else {
+                    const filteredProducts = products.filter(product => product.category === category);
+                    displayProducts(filteredProducts);
+                }
+            });
+        });
+
+        document.getElementById('viewCartButton').addEventListener('click', function() {
+            window.location.href = 'carrinho.html';
+        });
+
+        // Exibir todos os produtos por padrão
+        displayProducts(products);
+
+        document.addEventListener("DOMContentLoaded", () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const category = urlParams.get('category');
+        const categoryTitle = document.getElementById('category-title');
+        const productList = document.getElementById('product-list');
+
+        const offers = JSON.parse(localStorage.getItem('offers')) || [];
+
+        if (category) {
+            categoryTitle.textContent = category;
+
+            const filteredOffers = offers.filter(offer => offer.category === category);
+            productList.innerHTML = '';
+
+            if (filteredOffers.length > 0) {
+                filteredOffers.forEach(offer => {
+                    const offerItem = document.createElement('li');
+                    offerItem.innerHTML = `
+                        <div class="offer-card has-bg-image img-holder" style="background-image: url('${offer.image}'); --width: 540; --height: 374;">
+                            <p class="card-subtitle">${offer.subtitle}</p>
+                            <h3 class="h3 card-title">${offer.title}</h3>
+                            <a href="${offer.link}" class="btn">Leia mais</a>
+                        </div>
+                    `;
+                    productList.appendChild(offerItem);
+                });
+            } else {
+                productList.innerHTML = '<p>Nenhuma oferta encontrada para esta categoria.</p>';
+            }
+        } else {
+            categoryTitle.textContent = 'Todas as Categorias';
+            productList.innerHTML = '<p>Por favor, selecione uma categoria.</p>';
+        }
+    });
+    </script>
+</body>
+</html>

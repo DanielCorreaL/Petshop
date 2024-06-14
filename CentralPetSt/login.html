@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Pet Shop</title>
+    <link rel="stylesheet" href="./assets/css/login.css">
+</head>
+<body>
+    <h1>Login</h1>
+    <form id="loginForm">
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required>
+        <label for="password">Senha:</label>
+        <input type="password" id="password" name="password" required>
+        <button type="submit">Login</button>
+    </form>
+    <a href="registro.html">Não tem uma conta? Registre-se</a>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const admins = [
+                { username: 'admin1', email: 'centralpet@gmail.com', password: 'petcent123', userType: 'admin' },
+                { username: 'admin2', email: 'admin2@example.com', password: 'admin123', userType: 'admin' },
+                { username: 'admin3', email: 'admin3@example.com', password: 'admin123', userType: 'admin' },
+                { username: 'admin4', email: 'admin4@example.com', password: 'admin123', userType: 'admin' }
+            ];
+
+            const user = admins.find(admin => admin.email === email && admin.password === password);
+
+            if (user) {
+                alert('Login bem-sucedido!');
+                // Salva as informações do usuário no localStorage para identificar o usuário logado
+                localStorage.setItem('loggedInUser', JSON.stringify(user));
+                // Redireciona para a página principal ou para o painel de administração, dependendo do tipo de usuário
+                window.location.href = 'adminis.html';
+            } else {
+                alert('Credenciais inválidas. Tente novamente.');
+            }
+        });
+    </script>
+</body>
+</html>

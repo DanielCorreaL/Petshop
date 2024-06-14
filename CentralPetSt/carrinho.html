@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrinho de Compras</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .cart-container {
+            width: 80%;
+            max-width: 800px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .cart-item img {
+            max-width: 50px;
+            border-radius: 5px;
+        }
+
+        .cart-item button {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #DC3545;
+            color: white;
+        }
+
+        .cart-item input[type="number"] {
+            width: 50px;
+            margin: 0 10px;
+        }
+
+        #finalizeOrderButton {
+            margin-top: 20px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #28A745;
+            color: white;
+        }
+
+        #cartTotal {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        #customerInfoForm {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        #customerInfoForm label {
+            margin: 5px 0;
+        }
+
+        #customerInfoForm input {
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Seu Carrinho</h1>
+    <div class="cart-container" id="cartContainer">
+        <!-- Itens do carrinho serão adicionados aqui -->
+    </div>
+    <div id="cartTotal">Total da Compra: R$ 0.00</div>
+
+    <!-- Formulário para capturar nome e e-mail do cliente -->
+    <form id="customerInfoForm">
+        <label for="customerName">Nome:</label>
+        <input type="text" id="customerName" required>
+        <label for="customerEmail">E-mail:</label>
+        <input type="email" id="customerEmail" required>
+    </form>
+
+    <button id="finalizeOrderButton">Finalizar Pedido</button>
+
+    <script>
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+        function displayCartItems() {
+            const cartContainer = document.getElementById('cartContainer');
+            cartContainer.innerHTML = '';
+            cart.forEach(item => {
+                const cartItem = document.createElement('div');
+                cartItem.classList.add('cart-item');
+                cartItem.innerHTML = `
+                    <img src="${item.image}" alt="${item.name}">
+                    <span>${item.name}</span>
+                    <span>R$ ${item.price}</span>
+                    <input type="number" value="${item.quantity}" min="1" class="quantity-input" data-id="${item.id}">
+                    <button data-id="${item.id}">Remover</button>
+                `;
+                cartContainer.appendChild(cartItem);
+            });
+
+            document.querySelectorAll('.quantity-input').forEach(input => {
+                input.addEventListener('change', function() {
+                    const itemId = this.dataset.id;
+                    const newQuantity = parseInt(this.value);
+                    const item = cart.find(p => p.id == itemId);
+                    if (item && newQuantity > 0) {
+                        item.quantity = newQuantity;
+                        localStorage.setItem('cart', JSON.stringify(cart));
+                        updateCartTotal();
+                    }
+                });
+            });
+
+            document.querySelectorAll('.cart-item button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const itemId = this.dataset.id;
+                    const index = cart.findIndex(p => p.id == itemId);
+                    if (index > -1) {
+                        cart.splice(index, 1);
+                        localStorage.setItem('cart', JSON.stringify(cart));
+                        displayCartItems();
+                        updateCartTotal();
+                    }
+                });
+            });
+
+            updateCartTotal();
+        }
+
+        function updateCartTotal() {
+            const cartTotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
+            document.getElementById('cartTotal').textContent = `Total da Compra: R$ ${cartTotal.toFixed(2)}`;
+        }
+
+        document.getElementById('finalizeOrderButton').addEventListener('click', function() {
+            // Capturar nome e e-mail do cliente
+            const customerName = document.getElementById('customerName').value;
+            const customerEmail = document.getElementById('customerEmail').value;
+
+            // Verificar se o nome e o e-mail foram fornecidos
+            if (customerName.trim() === '' || customerEmail.trim() === '') {
+                alert('Por favor, preencha seu nome e e-mail antes de finalizar o pedido.');
+                return;
+            }
+
+            // Continuar com o processo de finalização do pedido
+            const orders = JSON.parse(localStorage.getItem('orders')) || [];
+            const order = {
+                id: customerName, // Usar o nome do cliente como ID do pedido
+                customerName: customerName,
+                customerEmail: customerEmail,
+                date: new Date().toISOString(), // Adiciona a data do pedido
+                items: cart,
+                total: cart.reduce((total, item) => total + item.price * item.quantity, 0)
+            };
+            orders.push(order);
+            localStorage.setItem('orders', JSON.stringify(orders));
+            localStorage.removeItem('cart');
+            alert('Pedido realizado com sucesso!');
+            window.location.href = 'index.html';
+        });
+
+        // Exibir os itens do carrinho ao carregar a página
+        displayCartItems();
+    </script>
+</body>
+</html>
